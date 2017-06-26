@@ -47,3 +47,14 @@ for k,v in pairs(baselib.table_keys(t)) do
 	print(k)
 	print(v)
 end
+
+print(baselib.crc32('string'))
+
+local key = 'a'
+print(baselib.table_key_exists(key, t))
+local key = 'aa'
+print(baselib.table_key_exists(key, t))
+local key = 2
+print(baselib.table_key_exists(key, t))
+local key = 3
+print(baselib.table_key_exists(key, t))

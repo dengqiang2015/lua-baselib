@@ -1,9 +1,93 @@
 #include "baselib.h"
 #include "basefunc.c"
 
+static int baselib_table_key_exists(lua_State *L)
+{
+	
+	int numKey;
+	int type = 0;
+	const char * strKey;
+	int strKeyLen = 0;
+
+	if(lua_type(L, -2) == LUA_TNUMBER)
+	{
+		numKey = luaL_checknumber(L, -2);						
+	}
+	else if(lua_type(L, -2) == LUA_TSTRING)
+	{
+		type = 1;
+		strKey = luaL_checkstring(L, -2);
+		strKeyLen = strlen(strKey);
+	}
+	else
+	{
+		lua_pushboolean(L, 0);
+                return 1;
+	}
+
+
+	if(!lua_istable(L, -1))
+	{
+		lua_pushboolean(L, 0);
+		return 1;
+	}
+
+	lua_pushnil(L);
+        while(lua_next(L, -2))
+        {
+		
+		if(lua_type(L, -2) == LUA_TSTRING)
+		{
+			if(type == 1)
+			{
+			
+				const char * srcStr = luaL_checkstring(L, -2);	
+				if(0 == strcmp(strKey, srcStr))
+				{
+					lua_pushboolean(L, 1);
+                        		return 1;
+				}
+			} 	
+		}
+		else if(lua_type(L, -2) == LUA_TNUMBER)
+		{
+			if(type == 0)
+                        {
+				int srcNum  = luaL_checknumber(L, -2);
+				if(srcNum == numKey)
+                        	{
+                                	lua_pushboolean(L, 1);
+                                	return 1;
+                        	}
+			}
+		}
+		else
+		{
+		        lua_pushboolean(L, 0);
+        		return 1;
+		}
+		lua_pop(L, 1);
+	}
+
+	lua_pushboolean(L, 0);
+	return 1;
+	
+}
+
+
+static int baselib_crc32(lua_State *L)
+{
+	const unsigned char * src = luaL_checkstring(L, 1);
+        uint32_t len = strlen(src);
+        uint32_t crc = crc32(src, len);
+        lua_pushnumber(L, crc);
+    	return 1;		
+}
+
+
 static int baselib_table_keys(lua_State *L)
 {   
-	size_t extend = 10;
+	size_t extend = 256;
 	int idx = 0;
 	TBK *keys = NULL;
 	if(lua_type(L, 1) == LUA_TTABLE)
@@ -33,16 +117,16 @@ static int baselib_table_keys(lua_State *L)
 			else if(lua_type(L, -2) == LUA_TNUMBER)
 			{
 				keys[idx].numKey = NULL;
-                keys[idx].strKey = NULL;
-                keys[idx].strKeyLen = 0;	
+                		keys[idx].strKey = NULL;
+                		keys[idx].strKeyLen = 0;	
 				if(idx >0 && idx%extend == 0)
-                {       
-                    keys = (TBK *)realloc(keys, (idx+extend)*sizeof(TBK));
-                }
+                		{	       
+                    			keys = (TBK *)realloc(keys, (idx+extend)*sizeof(TBK));
+                		}
 				const int num = luaL_checknumber(L, -2);
 				int * numcp = (int *)calloc(1, sizeof(int));
 				*numcp = num;
-                keys[idx++].numKey = numcp;
+                		keys[idx++].numKey = numcp;
 			}
 			else
 			{
@@ -58,11 +142,11 @@ static int baselib_table_keys(lua_State *L)
 				lua_pushnumber(L, i+1);
 				if(keys[i].strKeyLen > 0)
 				{
-	            	lua_pushstring(L, keys[i].strKey);
+	            			lua_pushstring(L, keys[i].strKey);
 				}
 				else if(keys[i].numKey != NULL)
 				{
-	                lua_pushnumber(L, *keys[i].numKey);
+	                		lua_pushnumber(L, *keys[i].numKey);
 				}
 				else
 				{
@@ -77,7 +161,7 @@ static int baselib_table_keys(lua_State *L)
 		lua_createtable(L, 0, 0);
 	}
 		
-    return 1;
+    	return 1;
 }
 
 static int baselib_ucfirst(lua_State *L)
@@ -89,7 +173,7 @@ static int baselib_ucfirst(lua_State *L)
 	char * s = newstr;
 	*s = toupper(*s);
 	lua_pushstring(L, newstr);
-    return 1;	
+    	return 1;	
 }
 
 
@@ -394,6 +478,8 @@ static const struct luaL_Reg baselib[] = {
 	{"ucfirst", baselib_ucfirst},
 	{"lcfirst", baselib_lcfirst},
 	{"table_keys", baselib_table_keys},
+	{"crc32", baselib_crc32},
+	{"table_key_exists", baselib_table_key_exists},
 	{NULL, NULL}
 
 };
