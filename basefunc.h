@@ -10,6 +10,8 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <errno.h> //For errno - the error number
+#include <netdb.h> //hostent
 #include "sha1.h"
 
 static unsigned char hexchars[] = "0123456789ABCDEF";
@@ -91,3 +93,4 @@ char * rtrim(char * s, size_t len);
 char * ltrim(char * s);
 char * trim(char * s, size_t len);
 uint32_t crc32( const unsigned char *buf, uint32_t size);
+int hostname2ip(const char * hostname , char* ip);
