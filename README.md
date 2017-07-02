@@ -20,6 +20,12 @@ ucfirst
 table_keys
 crc32
 table_key_exists
+table_shuffle
+split
+join
+parse_str
+strpos
+stripos
 
 How to use:
 
