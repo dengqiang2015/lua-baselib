@@ -80,3 +80,9 @@ for k,v in pairs(t) do
         print(k)
         print(v)
 end
+
+findstr = 'str'
+print(baselib.strpos(str, findstr))
+
+findstr = 'Str'
+print(baselib.stripos(str, findstr))

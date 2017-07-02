@@ -1,5 +1,59 @@
 #include "baselib.h"
+#include <string.h>
 #include "basefunc.c"
+
+
+static int baselib_stripos(lua_State *L)
+{
+	const char * src = luaL_checkstring(L, -2);
+	const char * findstr = luaL_checkstring(L, -1);
+	int srclen = strlen(src);
+	int findstrlen = strlen(findstr);
+	if(srclen == 0 || findstrlen == 0)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	const char * startpos = src;
+	char * endpos = (char *)strcasestr(src, findstr);
+	int pos = 0;
+	if(endpos == NULL)
+	{
+		lua_pushnil(L);
+	}
+	else
+	{
+		pos = (int)(endpos-startpos);
+		lua_pushnumber(L, pos);
+	}
+	return 1;	
+}
+
+static int baselib_strpos(lua_State *L)
+{
+	const char * src = luaL_checkstring(L, -2);
+	const char * findstr = luaL_checkstring(L, -1);
+	int srclen = strlen(src);
+	int findstrlen = strlen(findstr);
+	if(srclen == 0 || findstrlen == 0)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	const char * startpos = src;
+	char * endpos = strstr(src, findstr);
+	int pos = 0;
+	if(endpos == NULL)
+	{
+		lua_pushnil(L);
+	}
+	else
+	{
+		pos = (int)(endpos-startpos);
+		lua_pushnumber(L, pos);
+	}
+	return 1;	
+}
 
 static int baselib_parse_str(lua_State *L)
 {
@@ -47,9 +101,8 @@ static int baselib_parse_str(lua_State *L)
 			item = strtok(NULL, "&");
 		}
 	}
-	//free(psi);
-	//free(srccp);
-	//free(item);
+	free(srccp);
+	free(item);
 	return 1;	
 }
 
@@ -728,6 +781,8 @@ static const struct luaL_Reg baselib[] = {
 	{"split", baselib_split},
 	{"join", baselib_join},
 	{"parse_str", baselib_parse_str},
+	{"strpos", baselib_strpos},
+	{"stripos", baselib_stripos},
 	{NULL, NULL}
 
 };
