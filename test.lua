@@ -86,3 +86,80 @@ print(baselib.strpos(str, findstr))
 
 findstr = 'Str'
 print(baselib.stripos(str, findstr))
+str, count = baselib.str_replace(str, '12345', '123')
+print(str)
+print(count)
+
+
+t = baselib.parse_str(str)
+print('#######')
+
+for k,v in pairs(baselib.range(3)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+for k,v in pairs(baselib.range(-3)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range(5,10,2)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+for k,v in pairs(baselib.range(10,5)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+for k,v in pairs(baselib.range(-5,-10)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range(-10,-5)) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range('f')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+for k,v in pairs(baselib.range('h', 'm')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range('m', 'h')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range('G')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+for k,v in pairs(baselib.range('W', 'Z')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+for k,v in pairs(baselib.range('Z', 'W')) do
+       --print(k)
+       print(v)
+end
+print('#######')
+
+
+

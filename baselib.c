@@ -3,12 +3,158 @@
 #include "basefunc.c"
 
 
-static int baselib_stripos(lua_State *L)
+int baselib_range(lua_State *L)
+{
+	
+	lua_Integer n = lua_gettop(L);
+	lua_Integer k = 1;
+	lua_Integer v = 0;
+	lua_Integer type = 0;
+	lua_Integer border = 0;
+	lua_Integer border1 = 0;
+	lua_Integer border2 = 0;
+	lua_Integer scan = 1;
+	
+
+	(n >= 3)&&(scan = luaL_checknumber(L, 3));
+	
+	if(lua_type(L, -1) == LUA_TSTRING)
+	{
+		const char * c = luaL_checkstring(L, 1);
+		border = (int)(*c);
+
+		if(border >= 65 && border <=90)
+		{
+			border1 = 65;
+			border2 = border;
+			if(n >=2){
+				border1 = border;
+				c = luaL_checkstring(L, 2);
+				border2 = (int)(*c);
+				if(border2 < 65 || border2 > 90)
+				{
+					lua_createtable(L, 0, 0);
+					return 1;
+				}
+			}
+			type = 1;
+		
+		}else if(border >= 97 && border <= 122)
+		{
+			border1 = 97;
+			border2 = border;
+
+			if(n >= 2){
+				border1 = border;
+				c = luaL_checkstring(L, 2);
+				border2 = (int)(*c);
+			
+				if(border2 < 97 || border2 > 122)
+				{
+					lua_createtable(L, 0, 0);
+					return 1;
+				}
+			}
+			type = 2;
+		}
+		else
+		{
+			lua_createtable(L, 0, 0);
+			return 1;
+		}
+				
+    }else if(lua_type(L, -1) == LUA_TNUMBER)
+    {
+    	if(n == 1)
+		{
+			border = lua_tonumber(L, 1);
+			(border > 0) ? (border2 = border) : (border1 = border);
+		}
+		else
+		{
+			border1 = lua_tonumber(L, 1);
+			border2 = lua_tonumber(L, 2);
+		}
+	}
+	else
+	{
+		lua_createtable(L, 0, 0);
+		return 1;
+	}
+	
+	lua_createtable(L, 0, 0);
+	
+	if(border1 <= border2)
+	{
+
+		for(v=border1; v <= border2; v+=scan)
+		{
+			lua_pushnumber(L, k++);
+			if(type == 0)
+			{
+				lua_pushnumber(L, v);
+			}
+			else
+			{
+				char nc[1];
+				sprintf(nc, "%c", v);
+				lua_pushstring(L, nc);
+			}
+			lua_settable(L,-3);
+		}
+	}
+	else
+	{
+
+		for(v=border1; v >= border2; v-=scan)
+		{
+			lua_pushnumber(L, k++);
+			if(type == 0)
+			{
+				lua_pushnumber(L, v);
+			}
+			else
+			{
+				char nc[1];
+				sprintf(nc, "%c", v);
+				lua_pushstring(L, nc);
+			}
+			lua_settable(L,-3);
+		}
+	}
+	return 1;	
+}
+
+int baselib_str_replace(lua_State *L)
+{
+	const char * haystack = luaL_checkstring(L, -3);
+	const char * needle = luaL_checkstring(L, -2);
+	const char * str = luaL_checkstring(L, -1);
+	
+	long replace_count = 0;
+	lua_Integer needle_len = strlen(needle);
+	lua_Integer haystack_len = strlen(haystack);
+	lua_Integer str_len = strlen(str);
+	if(haystack == 0 || needle_len == 0)
+	{
+		lua_pushnil(L);
+		lua_pushnumber(L, 0);
+		return 2;
+	}
+	
+	const char *newstr =  (const char *)str_replace(haystack, haystack_len, needle, needle_len, str, str_len, &replace_count);
+
+	lua_pushstring(L, newstr);
+	lua_pushnumber(L, replace_count);
+	return 2;	
+}
+
+int baselib_stripos(lua_State *L)
 {
 	const char * src = luaL_checkstring(L, -2);
 	const char * findstr = luaL_checkstring(L, -1);
-	int srclen = strlen(src);
-	int findstrlen = strlen(findstr);
+	lua_Integer srclen = strlen(src);
+	lua_Integer findstrlen = strlen(findstr);
 	if(srclen == 0 || findstrlen == 0)
 	{
 		lua_pushnil(L);
@@ -16,7 +162,7 @@ static int baselib_stripos(lua_State *L)
 	}
 	const char * startpos = src;
 	char * endpos = (char *)strcasestr(src, findstr);
-	int pos = 0;
+	lua_Integer pos = 0;
 	if(endpos == NULL)
 	{
 		lua_pushnil(L);
@@ -29,12 +175,12 @@ static int baselib_stripos(lua_State *L)
 	return 1;	
 }
 
-static int baselib_strpos(lua_State *L)
+int baselib_strpos(lua_State *L)
 {
 	const char * src = luaL_checkstring(L, -2);
 	const char * findstr = luaL_checkstring(L, -1);
-	int srclen = strlen(src);
-	int findstrlen = strlen(findstr);
+	lua_Integer srclen = strlen(src);
+	lua_Integer findstrlen = strlen(findstr);
 	if(srclen == 0 || findstrlen == 0)
 	{
 		lua_pushnil(L);
@@ -42,7 +188,7 @@ static int baselib_strpos(lua_State *L)
 	}
 	const char * startpos = src;
 	char * endpos = strstr(src, findstr);
-	int pos = 0;
+	lua_Integer pos = 0;
 	if(endpos == NULL)
 	{
 		lua_pushnil(L);
@@ -55,11 +201,11 @@ static int baselib_strpos(lua_State *L)
 	return 1;	
 }
 
-static int baselib_parse_str(lua_State *L)
+int baselib_parse_str(lua_State *L)
 {
 
 	const char * src = luaL_checkstring(L, 1);
-	int len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * srccp = (char *)calloc(len, sizeof(char));
 	memcpy(srccp, src, len);
 	char * item;
@@ -67,8 +213,8 @@ static int baselib_parse_str(lua_State *L)
 	char * v;
 	char * kp;
 	char * vp;
-	int split = 0;
-	int itemlen = 0;
+	lua_Integer split = 0;
+	lua_Integer itemlen = 0;
 	lua_createtable(L,0,0);
 	if(len > 0)
 	{
@@ -106,17 +252,17 @@ static int baselib_parse_str(lua_State *L)
 	return 1;	
 }
 
-static int baselib_join(lua_State *L)
+int baselib_join(lua_State *L)
 {
 	const char * cts = luaL_checkstring(L, -1);
 	const char * ctsi;
-	int ctslen = strlen(cts);
+	lua_Integer ctslen = strlen(cts);
 	lua_pop(L, 1);
-	int key;
+	lua_Integer key;
 	const char * val;
 	char * str = (char*)calloc(1,sizeof(char));
-	size_t vlen;
-	size_t len=0;
+	lua_Integer vlen;
+	lua_Integer len=0;
 	char * i;
 	lua_pushnil(L);
 	while(0 != lua_next(L, -2))
@@ -141,13 +287,13 @@ static int baselib_join(lua_State *L)
 	return 1;
 }
 
-static int baselib_split(lua_State *L)
+int baselib_split(lua_State *L)
 {
 	const char * src = luaL_checkstring(L, -2);
 	const char * delim = luaL_checkstring(L, -1);
-	int i = 1;
-	int srclen = strlen(src);
-	int delimlen = strlen(delim);
+	lua_Integer i = 1;
+	lua_Integer srclen = strlen(src);
+	lua_Integer delimlen = strlen(delim);
 	char * srccp = (char *)calloc(srclen, sizeof(char));
 	char * p;
 
@@ -172,30 +318,30 @@ static int baselib_split(lua_State *L)
 	return 1;	
 }
 
-static int baselib_table_shuffle(lua_State *L)
+int baselib_table_shuffle(lua_State *L)
 {	
 	typedef struct tableval
 	{
 			double * numVal;
 			char * strVal;
-			int strValLen;
+			lua_Integer strValLen;
 	}TBV;
 
 	size_t extend = 256;
-	int idx = 0;
+	lua_Integer idx = 0;
 	TBV *vals = NULL;
 	TBV *tmpval = NULL;
 	if(lua_type(L, 1) == LUA_TTABLE)
 	{
 		vals = (TBV *)calloc(extend, sizeof(TBV));
 		tmpval = (TBV *)calloc(1, sizeof(TBV));
-		int len = 0;
-		int i = 0;
+		lua_Integer len = 0;
+		lua_Integer i = 0;
 		tmpval[0].numVal = NULL;
 		tmpval[0].strVal = NULL;
 		tmpval[0].strValLen = 0;
 		srand((unsigned)time(NULL));
-		int k = 0;
+		lua_Integer k = 0;
 		lua_pushnil(L);
 		while(lua_next(L, -2))
 		{
@@ -224,7 +370,7 @@ static int baselib_table_shuffle(lua_State *L)
 				{		   
 					vals = (TBV *)realloc(vals, (idx+extend)*sizeof(TBV));
 				}
-				const int num = luaL_checknumber(L, -1);
+				const lua_Integer num = luaL_checknumber(L, -1);
 				double * numcp = (double *)calloc(1, sizeof(double));
 				*numcp = num;
 				vals[idx++].numVal = numcp;
@@ -281,13 +427,13 @@ static int baselib_table_shuffle(lua_State *L)
 	return 1;
 }
 
-static int baselib_table_key_exists(lua_State *L)
+int baselib_table_key_exists(lua_State *L)
 {
 	
-	int numKey;
-	int type = 0;
+	lua_Integer numKey;
+	lua_Integer type = 0;
 	const char * strKey;
-	int strKeyLen = 0;
+	lua_Integer strKeyLen = 0;
 
 	if(lua_type(L, -2) == LUA_TNUMBER)
 	{
@@ -332,7 +478,7 @@ static int baselib_table_key_exists(lua_State *L)
 		{
 			if(type == 0)
 			{
-				int srcNum	= luaL_checknumber(L, -2);
+				lua_Integer srcNum	= luaL_checknumber(L, -2);
 				if(srcNum == numKey)
 				{
 					lua_pushboolean(L, 1);
@@ -355,26 +501,26 @@ static int baselib_table_key_exists(lua_State *L)
 }
 
 
-static int baselib_crc32(lua_State *L)
+int baselib_crc32(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	uint32_t len = strlen(src);
-	uint32_t crc = crc32(src, len);
+	lua_Integer len = strlen(src);
+	lua_Integer crc = crc32(src, len);
 	lua_pushnumber(L, crc);
 	return 1;		
 }
 
 
-static int baselib_table_keys(lua_State *L)
+int baselib_table_keys(lua_State *L)
 {	
 	size_t extend = 256;
-	int idx = 0;
+	lua_Integer idx = 0;
 	TBK *keys = NULL;
 	if(lua_type(L, 1) == LUA_TTABLE)
 	{
 		keys = (TBK *)calloc(extend, sizeof(TBK));
-		int len = 0;
-		int i = 0;
+		lua_Integer len = 0;
+		lua_Integer i = 0;
 		lua_pushnil(L);
 		while(lua_next(L, -2))
 		{
@@ -403,8 +549,8 @@ static int baselib_table_keys(lua_State *L)
 				{		   
 					keys = (TBK *)realloc(keys, (idx+extend)*sizeof(TBK));
 				}
-				const int num = luaL_checknumber(L, -2);
-				int * numcp = (int *)calloc(1, sizeof(int));
+				const lua_Integer num = luaL_checknumber(L, -2);
+				lua_Integer * numcp = (lua_Integer *)calloc(1, sizeof(int));
 				*numcp = num;
 				keys[idx++].numKey = numcp;
 			}
@@ -444,10 +590,10 @@ static int baselib_table_keys(lua_State *L)
 		return 1;
 }
 
-static int baselib_ucfirst(lua_State *L)
+int baselib_ucfirst(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	size_t len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * newstr = (char *)calloc(len, sizeof(char));
 	memcpy(newstr, src, len);
 	char * s = newstr;
@@ -457,10 +603,10 @@ static int baselib_ucfirst(lua_State *L)
 }
 
 
-static int baselib_lcfirst(lua_State *L)
+int baselib_lcfirst(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	size_t len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * newstr = (char *)calloc(len, sizeof(char));
 	memcpy(newstr, src, len);
 	char * s = newstr;
@@ -470,10 +616,10 @@ static int baselib_lcfirst(lua_State *L)
 }
 
 
-static int baselib_strtolower(lua_State *L)
+int baselib_strtolower(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	int len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * newstr = (char *)calloc(len, sizeof(char));
 	memcpy(newstr, src, len);
 	char * s = newstr;
@@ -486,10 +632,10 @@ static int baselib_strtolower(lua_State *L)
 	return 1;
 }
 
-static int baselib_strtoupper(lua_State *L)
+int baselib_strtoupper(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	int len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * newstr = (char *)calloc(len, sizeof(char));
 	memcpy(newstr, src, len);
 	char * s = newstr;
@@ -502,19 +648,19 @@ static int baselib_strtoupper(lua_State *L)
 	return 1;
 }
 
-static int baselib_urlencode(lua_State *L)
+int baselib_urlencode(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	int len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * newstr = urlencode(src, len);
 	lua_pushstring(L, newstr);
 	return 1;
 }
 
-static int baselib_urldecode(lua_State *L)
+int baselib_urldecode(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
-	int len = strlen(src);
+	lua_Integer len = strlen(src);
 	char * srccp = (char *)calloc(len, sizeof(char));
 	memcpy(srccp, src, len);
 	char * newstr = urldecode(srccp, len);
@@ -522,7 +668,7 @@ static int baselib_urldecode(lua_State *L)
 	return 1;
 }
 
-static int baselib_base64_encode(lua_State *L)
+int baselib_base64_encode(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
 	unsigned char * newstr = base64_encode(src);
@@ -532,7 +678,7 @@ static int baselib_base64_encode(lua_State *L)
 }
 
 
-static int baselib_base64_decode(lua_State *L)
+int baselib_base64_decode(lua_State *L)
 {
 	const unsigned char * src = luaL_checkstring(L, 1);
 	unsigned char * newstr = base64_decode(src, 1);
@@ -541,15 +687,15 @@ static int baselib_base64_decode(lua_State *L)
 }
 
 
-static int baselib_get_local_ip(lua_State *L)
+int baselib_get_local_ip(lua_State *L)
 {
 	char ip[32]={'\0'};
-	int lt = lua_type(L, 1);
+	lua_Integer lt = lua_type(L, 1);
 	if(lt != LUA_TSTRING){
 		get_local_ip("eth0", ip);
 	}else{
 		const char * src = luaL_checkstring(L, 1);
-		size_t len = strlen(src);
+		lua_Integer len = strlen(src);
 		char * ifname = (char*)calloc (1, len);
 		memset(ifname, '\0', len);
 		memcpy (ifname, src, len);
@@ -568,10 +714,10 @@ static int baselib_get_local_ip(lua_State *L)
    return 1;
 }
 
-static int baselib_gethostbyname(lua_State *L)
+int baselib_gethostbyname(lua_State *L)
 {
 	char ip[32]={'\0'};
-	int lt = lua_type(L, 1);
+	lua_Integer lt = lua_type(L, 1);
 	if(lt != LUA_TSTRING){
 		lua_pushnil(L);
 	}else{
@@ -583,13 +729,13 @@ static int baselib_gethostbyname(lua_State *L)
    return 1;
 }
 
-static int baselib_table2str(lua_State *L)
+int baselib_table2str(lua_State *L)
 {
-	int key;
+	lua_Integer key;
 	const char * val;
 	char * str = (char*)calloc(1, sizeof(char));
-	size_t vlen;
-	size_t len=0;
+	lua_Integer vlen;
+	lua_Integer len=0;
 	char * i;
 	lua_pushnil(L);
 	while(0 != lua_next(L, -2))
@@ -613,11 +759,11 @@ static int baselib_table2str(lua_State *L)
 	
 }
 
-static int baselib_str2table(lua_State *L)
+int baselib_str2table(lua_State *L)
 {
 	const char * src = luaL_checkstring(L, 1);
-	int i=1;
-	int len = strlen(src);
+	lua_Integer i=1;
+	lua_Integer len = strlen(src);
 	char * c = (char *)calloc(1, sizeof(char));
 	lua_pop(L, 1);
 	lua_createtable(L,0,0);
@@ -634,10 +780,10 @@ static int baselib_str2table(lua_State *L)
 }
 
 
-static int baselib_rtrim(lua_State *L)
+int baselib_rtrim(lua_State *L)
 {		
 		const char * src = luaL_checkstring(L, 1);
-		size_t len= strlen(src);
+		lua_Integer len= strlen(src);
 		if(len>0)
 		{		
 			char * srccp = (char *)calloc(len, sizeof(char));
@@ -652,10 +798,10 @@ static int baselib_rtrim(lua_State *L)
 		return 1;
 }
 
-static int baselib_ltrim(lua_State *L)
+int baselib_ltrim(lua_State *L)
 {
 	const char * src = luaL_checkstring(L, 1);
-	size_t len= strlen(src);
+	lua_Integer len= strlen(src);
 	if(len>0)
 	{
 		char * srccp = (char *)calloc(len, sizeof(char));
@@ -671,9 +817,9 @@ static int baselib_ltrim(lua_State *L)
 }
 
 
-static int baselib_tablen(lua_State *L) 
+int baselib_tablen(lua_State *L) 
 {
-	int len = 0;
+	lua_Integer len = 0;
 	lua_pushnil(L);	 
 	while(lua_next(L, -2))	
 	{  
@@ -684,10 +830,10 @@ static int baselib_tablen(lua_State *L)
 	return 1;
 } 
 
-static int baselib_trim(lua_State *L) 
+int baselib_trim(lua_State *L) 
 {
 	const char * src = luaL_checkstring(L, 1);
-		size_t len= strlen(src);
+		lua_Integer len= strlen(src);
 		if(len>0)
 		{		
 			char * srccp = (char *)calloc(len, sizeof(char));
@@ -704,7 +850,7 @@ static int baselib_trim(lua_State *L)
 
 
 
-static int baselib_sha1(lua_State *L) 
+int baselib_sha1(lua_State *L) 
 
 {
 	char buf[128];
@@ -716,21 +862,21 @@ static int baselib_sha1(lua_State *L)
 }
 
 
-static int baselib_md5(lua_State *L)
+int baselib_md5(lua_State *L)
 {
 	unsigned char decrypt[16]={'\0'};
 	unsigned char buf[33]={'\0'};
 	const char * src = luaL_checkstring(L, 1);
-	size_t len = strlen(src);
+	lua_Integer len = strlen(src);
 	unsigned char * str = (char*)calloc(len, sizeof(char));
 	memcpy(str, src, len);
-	int md5_len = luaL_checkinteger(L, 2);
+	lua_Integer md5_len = luaL_checkinteger(L, 2);
 	MD5_CTX md5;  
 	MD5Init(&md5);			 
 	MD5Update(&md5, str, len);	
 	MD5Final(&md5, decrypt);
 	free(str);
-	int i;
+	lua_Integer i;
 	if(md5_len == 16)
 	{
 		for(i=4; i<12; i++)
@@ -783,11 +929,13 @@ static const struct luaL_Reg baselib[] = {
 	{"parse_str", baselib_parse_str},
 	{"strpos", baselib_strpos},
 	{"stripos", baselib_stripos},
+	{"str_replace", baselib_str_replace},
+	{"range", baselib_range},
 	{NULL, NULL}
 
 };
 
-int luaopen_baselib(lua_State *L)
+lua_Integer luaopen_baselib(lua_State *L)
 
 {
 

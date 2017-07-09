@@ -16,7 +16,7 @@
 
 static unsigned char hexchars[] = "0123456789ABCDEF";
 
-static const uint32_t crc32tab[] = {
+static const lua_Integer  crc32tab[] = {
  0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL,
  0x076dc419L, 0x706af48fL, 0xe963a535L, 0x9e6495a3L,
  0x0edb8832L, 0x79dcb8a4L, 0xe0d5e91eL, 0x97d2d988L,
@@ -83,14 +83,17 @@ static const uint32_t crc32tab[] = {
  0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL 
 };
 
-static int htoi(char * s);
-char * urlencode(char const *s, int len);
-char * urldecode(char * str, int len);
+static lua_Integer htoi(char * s);
+char * urlencode(char const *s, lua_Integer len);
+char * urldecode(char * str, lua_Integer len);
 unsigned char *base64_encode(const unsigned char *str);
-unsigned char *base64_decode(const unsigned char *str, int strict);
-int get_local_ip(char * ifname, char * ip);
-char * rtrim(char * s, size_t len);
+unsigned char *base64_decode(const unsigned char *str, lua_Integer strict);
+lua_Integer get_local_ip(char * ifname, char * ip);
+char * rtrim(char * s, lua_Integer len);
 char * ltrim(char * s);
-char * trim(char * s, size_t len);
-uint32_t crc32( const unsigned char *buf, uint32_t size);
-int hostname2ip(const char * hostname , char* ip);
+char * trim(char * s, lua_Integer len);
+lua_Integer  crc32( const unsigned char *buf, lua_Integer  size);
+lua_Integer hostname2ip(const char * hostname , char* ip);
+void memnstr_pre(lua_Integer  td[], const char *needle, lua_Integer  needle_len, lua_Integer reverse);
+const char *memnstr(const char *haystack, const char *needle, lua_Integer  needle_len, const char *end);
+const char *str_replace(const char *haystack, lua_Integer  haystack_len, const char *needle, lua_Integer  needle_len, const char *str, lua_Integer  str_len, lua_Integer  *replace_count);

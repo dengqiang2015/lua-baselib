@@ -1,10 +1,10 @@
 #include "basefunc.h"
 #include "md5.c"
  
- static int htoi(char * s)  
+ static lua_Integer htoi(char * s)  
 {  
-    int value;  
-    int c;  
+    lua_Integer value;  
+    lua_Integer c;  
   
     c = ((unsigned char *)s)[0];  
     if (isupper(c))  
@@ -19,7 +19,7 @@
     return (value);  
 }
 
-char * urlencode(char const *s, int len)  
+char * urlencode(char const *s, lua_Integer len)  
 {  
     register unsigned char c;  
     unsigned char *to, *start;  
@@ -58,7 +58,7 @@ char * urlencode(char const *s, int len)
 
 
 
-char * urldecode(char * str, int len)  
+char * urldecode(char * str, lua_Integer len)  
 {  
     char * dest = str;  
     char * data = str;  
@@ -99,7 +99,7 @@ unsigned char *base64_encode(const unsigned char *str)
     };
     static const char base64_pad = '=';
     const unsigned char *current = str;
-    int length = strlen(str);
+    lua_Integer length = strlen(str);
     unsigned char *p;
     unsigned char *result;
 
@@ -138,7 +138,7 @@ unsigned char *base64_encode(const unsigned char *str)
 
 
 
-unsigned char *base64_decode(const unsigned char *str, int strict)
+unsigned char *base64_decode(const unsigned char *str, lua_Integer strict)
 {
     static const char base64_pad = '=';
     static const short base64_reverse_table[256] = {
@@ -160,8 +160,8 @@ unsigned char *base64_decode(const unsigned char *str, int strict)
         -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2
     };
     const unsigned char *current = str;
-    int length = strlen(str);
-    int ch, i = 0, j = 0, k;
+    lua_Integer length = strlen(str);
+    lua_Integer ch, i = 0, j = 0, k;
     
     unsigned char *result;
     
@@ -223,10 +223,10 @@ unsigned char *base64_decode(const unsigned char *str, int strict)
 }
 
 
-int get_local_ip(char * ifname, char * ip)
+lua_Integer get_local_ip(char * ifname, char * ip)
 {
     char *temp = NULL;
-    int inet_sock;
+    lua_Integer inet_sock;
     struct ifreq ifr;
 
     inet_sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -250,7 +250,7 @@ int get_local_ip(char * ifname, char * ip)
 
 
 
-char * rtrim(char * s, size_t len)
+char * rtrim(char * s, lua_Integer  len)
 {
 
 	char * i = s+len-1;
@@ -276,7 +276,7 @@ char * ltrim(char * s)
 
 
 
-char * trim(char * s, size_t len)
+char * trim(char * s, lua_Integer  len)
 {
 	char * i = s+len-1;
 	while(isspace(*s) && *s != '\0'){
@@ -289,9 +289,9 @@ char * trim(char * s, size_t len)
 }
 
 
-uint32_t crc32( const unsigned char *buf, uint32_t size)
+lua_Integer  crc32( const unsigned char *buf, lua_Integer  size)
 {
-	uint32_t i, crc;
+	lua_Integer  i, crc;
 	crc = 0xFFFFFFFF;
 	for (i = 0; i < size; i++)
 	{
@@ -301,11 +301,11 @@ uint32_t crc32( const unsigned char *buf, uint32_t size)
 }
 
 
-int hostname2ip(const char * hostname , char* ip)
+lua_Integer hostname2ip(const char * hostname , char* ip)
 {
     struct hostent *he;
     struct in_addr **addr_list;
-    int i;
+    lua_Integer i;
          
     if ( (he = gethostbyname( hostname ) ) == NULL) 
     {
@@ -323,4 +323,135 @@ int hostname2ip(const char * hostname , char* ip)
     }
      
     return 1;
+}
+
+
+/* 
+ * String matching - Sunday algorithm
+ */
+void memnstr_pre(lua_Integer  td[], const char *needle, lua_Integer  needle_len, lua_Integer reverse) {
+	lua_Integer i;
+
+	for (i = 0; i < 256; i++) {
+		td[i] = needle_len + 1;
+	}
+
+	if (reverse) {
+		for (i = needle_len - 1; i >= 0; i--) {
+			td[(unsigned char)needle[i]] = i + 1;
+		}
+	} else {
+		lua_Integer  i;
+
+		for (i = 0; i < needle_len; i++) {
+			td[(unsigned char)needle[i]] = (int)needle_len - i;
+		}
+	}
+}
+
+
+const char *memnstr(const char *haystack, const char *needle, lua_Integer  needle_len, const char *end)
+{
+	lua_Integer  td[256];
+	register lua_Integer  i;
+	register const char *p;
+
+	if (needle_len == 0 || (end - haystack) == 0) {
+		return NULL;
+	}
+	
+	memnstr_pre(td, needle, needle_len, 0);
+
+	p = haystack;
+	end -= needle_len;
+
+	while (p <= end) {
+		for (i = 0; i < needle_len; i++) {
+			if (needle[i] != p[i]) {
+				break;
+			}
+		}
+		if (i == needle_len) {
+			return p;
+		}
+		if (p == end) {
+			return NULL;
+		}
+		p += td[(unsigned char)(p[needle_len])];
+	}
+
+	return NULL;
+}
+
+const char *str_replace(const char *haystack, lua_Integer haystack_len,const char *needle, lua_Integer  needle_len, const char *str, lua_Integer  str_len, lua_Integer  *replace_count)
+{
+	char *new_str;
+	if (needle_len < haystack_len) {
+		const char *end;
+		const char *p, *r;
+		char *e, *s;
+
+		if (needle_len == str_len) {
+			new_str = NULL;
+			end = haystack + haystack_len;
+			for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
+				if (!new_str) {
+					new_str = (char *)malloc(haystack_len*sizeof(char));
+					memcpy(new_str, haystack, haystack_len);
+				}
+				memcpy(new_str + (r - haystack), str, str_len);
+				(*replace_count)++;
+			}
+			if (!new_str) {
+			
+				return haystack;
+			}
+	
+			return (const char *)new_str;
+		} else {
+			lua_Integer  count = 0;
+			const char *o = haystack;
+			const char *n = needle;
+			const char *endp = o + haystack_len;
+
+			while ((o = (char *)memnstr(o, n, needle_len, endp))) {
+				o += needle_len;
+				count++;
+			}
+			if (count == 0) {
+				return haystack;
+			}
+		
+			new_str = (char *)malloc((count * (str_len - needle_len) + haystack_len)*sizeof(char));
+
+			e = s = new_str;
+			end = haystack + haystack_len;
+			for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
+				memcpy(e, p, r - p);
+				e += r - p;
+		
+				memcpy(e, str, str_len);
+				(*replace_count)++;
+				e += str_len;
+			}
+
+			if (p < end) {
+				memcpy(e, p, end - p);
+				e += end - p;
+			}
+
+			*e = '\0';
+	
+			return (const char *)new_str;
+		}
+	} else if (needle_len > haystack_len || memcmp(haystack, needle, haystack_len)) {
+
+		return haystack;
+	}else {
+		new_str = (char *)malloc(str_len*sizeof(char));
+		memcpy(new_str, str, str_len);
+		(*replace_count)++;
+
+		return (const char *)new_str;
+	}
 }

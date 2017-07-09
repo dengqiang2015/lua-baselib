@@ -4,7 +4,7 @@
 
 typedef struct tablekey
 {       
-        int * numKey;
+        lua_Integer * numKey;
         char * strKey;
-        int strKeyLen;
+        lua_Integer strKeyLen;
 }TBK;
