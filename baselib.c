@@ -131,7 +131,7 @@ int baselib_str_replace(lua_State *L)
 	const char * needle = luaL_checkstring(L, -2);
 	const char * str = luaL_checkstring(L, -1);
 	
-	long replace_count = 0;
+	lua_Integer replace_count = 0;
 	lua_Integer needle_len = strlen(needle);
 	lua_Integer haystack_len = strlen(haystack);
 	lua_Integer str_len = strlen(str);
@@ -322,7 +322,7 @@ int baselib_table_shuffle(lua_State *L)
 {	
 	typedef struct tableval
 	{
-			double * numVal;
+			long double * numVal;
 			char * strVal;
 			lua_Integer strValLen;
 	}TBV;
@@ -371,7 +371,7 @@ int baselib_table_shuffle(lua_State *L)
 					vals = (TBV *)realloc(vals, (idx+extend)*sizeof(TBV));
 				}
 				const lua_Integer num = luaL_checknumber(L, -1);
-				double * numcp = (double *)calloc(1, sizeof(double));
+				long double * numcp = (long double *)calloc(1, sizeof(long double));
 				*numcp = num;
 				vals[idx++].numVal = numcp;
 			}
@@ -935,8 +935,7 @@ static const struct luaL_Reg baselib[] = {
 
 };
 
-lua_Integer luaopen_baselib(lua_State *L)
-
+int luaopen_baselib(lua_State *L)
 {
 
 	luaL_register(L, "baselib", baselib);
