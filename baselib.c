@@ -169,7 +169,7 @@ int baselib_stripos(lua_State *L)
 	}
 	else
 	{
-		pos = (int)(endpos-startpos);
+		pos = (lua_Integer)(endpos-startpos);
 		lua_pushnumber(L, pos);
 	}
 	return 1;	
@@ -195,7 +195,7 @@ int baselib_strpos(lua_State *L)
 	}
 	else
 	{
-		pos = (int)(endpos-startpos);
+		pos = (lua_Integer)(endpos-startpos);
 		lua_pushnumber(L, pos);
 	}
 	return 1;	
@@ -550,7 +550,7 @@ int baselib_table_keys(lua_State *L)
 					keys = (TBK *)realloc(keys, (idx+extend)*sizeof(TBK));
 				}
 				const lua_Integer num = luaL_checknumber(L, -2);
-				lua_Integer * numcp = (lua_Integer *)calloc(1, sizeof(int));
+				lua_Integer * numcp = (lua_Integer *)calloc(1, sizeof(lua_Integer));
 				*numcp = num;
 				keys[idx++].numKey = numcp;
 			}
