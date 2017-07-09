@@ -26,6 +26,8 @@ join
 parse_str
 strpos
 stripos
+str_replace
+range
 
 How to use:
 
