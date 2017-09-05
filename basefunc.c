@@ -250,54 +250,54 @@ lua_Integer get_local_ip(char * ifname, char * ip)
 
 
 
-char * rtrim(char * s, lua_Integer  len)
+char * rtrim(char * s, lua_Integer len)
 {
 
-	char * i = s+len-1;
+    char * i = s+len-1;
     for(i; isspace(*i) && i>s; i--){
-    	(*i) = '\0';
+        (*i) = '\0';
     }
-	
-	return s;
+    
+    return s;
 }
 
 
 
 char * ltrim(char * s)
 {
-	
-	while(isspace(*s) && *s != '\0')
-	{
-		s++;
-	}
+    
+    while(isspace(*s) && *s != '\0')
+    {
+        s++;
+    }
 
     return s;
 }
 
 
 
-char * trim(char * s, lua_Integer  len)
+char * trim(char * s, lua_Integer len)
 {
-	char * i = s+len-1;
-	while(isspace(*s) && *s != '\0'){
-		s++;
-	}
-	for(i; isspace(*i) && i>s; i--){
-		(*i) = '\0';
-	}
-	return s;
+    char * i = s+len-1;
+    while(isspace(*s) && *s != '\0'){
+        s++;
+    }
+    for(i; isspace(*i) && i>s; i--){
+        (*i) = '\0';
+    }
+    return s;
 }
 
 
-lua_Integer  crc32( const unsigned char *buf, lua_Integer  size)
+lua_Integer crc32( const unsigned char *buf, lua_Integer size)
 {
-	lua_Integer  i, crc;
-	crc = 0xFFFFFFFF;
-	for (i = 0; i < size; i++)
-	{
-     		crc = crc32tab[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
-	}
-     	return crc^0xFFFFFFFF;
+    lua_Integer i, crc;
+    crc = 0xFFFFFFFF;
+    for (i = 0; i < size; i++)
+    {
+            crc = crc32tab[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
+    }
+        return crc^0xFFFFFFFF;
 }
 
 
@@ -329,129 +329,199 @@ lua_Integer hostname2ip(const char * hostname , char* ip)
 /* 
  * String matching - Sunday algorithm
  */
-void memnstr_pre(lua_Integer  td[], const char *needle, lua_Integer  needle_len, lua_Integer reverse) {
-	lua_Integer i;
+void memnstr_pre(lua_Integer td[], const char *needle, lua_Integer needle_len, lua_Integer reverse) {
+    lua_Integer i;
 
-	for (i = 0; i < 256; i++) {
-		td[i] = needle_len + 1;
-	}
+    for (i = 0; i < 256; i++) {
+        td[i] = needle_len + 1;
+    }
 
-	if (reverse) {
-		for (i = needle_len - 1; i >= 0; i--) {
-			td[(unsigned char)needle[i]] = i + 1;
-		}
-	} else {
-		lua_Integer  i;
+    if (reverse) {
+        for (i = needle_len - 1; i >= 0; i--) {
+            td[(unsigned char)needle[i]] = i + 1;
+        }
+    } else {
+        lua_Integer i;
 
-		for (i = 0; i < needle_len; i++) {
-			td[(unsigned char)needle[i]] = (int)needle_len - i;
-		}
-	}
+        for (i = 0; i < needle_len; i++) {
+            td[(unsigned char)needle[i]] = (int)needle_len - i;
+        }
+    }
 }
 
 
-const char *memnstr(const char *haystack, const char *needle, lua_Integer  needle_len, const char *end)
+const char *memnstr(const char *haystack, const char *needle, lua_Integer needle_len, const char *end)
 {
-	lua_Integer  td[256];
-	register lua_Integer  i;
-	register const char *p;
+    lua_Integer td[256];
+    register lua_Integer i;
+    register const char *p;
 
-	if (needle_len == 0 || (end - haystack) == 0) {
-		return NULL;
-	}
-	
-	memnstr_pre(td, needle, needle_len, 0);
+    if (needle_len == 0 || (end - haystack) == 0) {
+        return NULL;
+    }
+    
+    memnstr_pre(td, needle, needle_len, 0);
 
-	p = haystack;
-	end -= needle_len;
+    p = haystack;
+    end -= needle_len;
 
-	while (p <= end) {
-		for (i = 0; i < needle_len; i++) {
-			if (needle[i] != p[i]) {
-				break;
-			}
-		}
-		if (i == needle_len) {
-			return p;
-		}
-		if (p == end) {
-			return NULL;
-		}
-		p += td[(unsigned char)(p[needle_len])];
-	}
+    while (p <= end) {
+        for (i = 0; i < needle_len; i++) {
+            if (needle[i] != p[i]) {
+                break;
+            }
+        }
+        if (i == needle_len) {
+            return p;
+        }
+        if (p == end) {
+            return NULL;
+        }
+        p += td[(unsigned char)(p[needle_len])];
+    }
 
-	return NULL;
+    return NULL;
 }
 
-const char *str_replace(const char *haystack, lua_Integer haystack_len,const char *needle, lua_Integer  needle_len, const char *str, lua_Integer  str_len, lua_Integer  *replace_count)
+const char *str_replace(const char *haystack, lua_Integer haystack_len,const char *needle, lua_Integer needle_len, const char *str, lua_Integer str_len, lua_Integer *replace_count)
 {
-	char *new_str;
-	if (needle_len < haystack_len) {
-		const char *end;
-		const char *p, *r;
-		char *e, *s;
+    char *new_str;
+    if (needle_len < haystack_len) {
+        const char *end;
+        const char *p, *r;
+        char *e, *s;
 
-		if (needle_len == str_len) {
-			new_str = NULL;
-			end = haystack + haystack_len;
-			for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
-				if (!new_str) {
-					new_str = (char *)malloc(haystack_len*sizeof(char));
-					memcpy(new_str, haystack, haystack_len);
-				}
-				memcpy(new_str + (r - haystack), str, str_len);
-				(*replace_count)++;
-			}
-			if (!new_str) {
-			
-				return haystack;
-			}
-	
-			return (const char *)new_str;
-		} else {
-			lua_Integer  count = 0;
-			const char *o = haystack;
-			const char *n = needle;
-			const char *endp = o + haystack_len;
+        if (needle_len == str_len) {
+            new_str = NULL;
+            end = haystack + haystack_len;
+            for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
+                if (!new_str) {
+                    new_str = (char *)malloc(haystack_len*sizeof(char));
+                    memcpy(new_str, haystack, haystack_len);
+                }
+                memcpy(new_str + (r - haystack), str, str_len);
+                (*replace_count)++;
+            }
+            if (!new_str) {
+            
+                return haystack;
+            }
+    
+            return (const char *)new_str;
+        } else {
+            lua_Integer count = 0;
+            const char *o = haystack;
+            const char *n = needle;
+            const char *endp = o + haystack_len;
 
-			while ((o = (char *)memnstr(o, n, needle_len, endp))) {
-				o += needle_len;
-				count++;
-			}
-			if (count == 0) {
-				return haystack;
-			}
-		
-			new_str = (char *)malloc((count * (str_len - needle_len) + haystack_len)*sizeof(char));
+            while ((o = (char *)memnstr(o, n, needle_len, endp))) {
+                o += needle_len;
+                count++;
+            }
+            if (count == 0) {
+                return haystack;
+            }
+        
+            new_str = (char *)malloc((count * (str_len - needle_len) + haystack_len)*sizeof(char));
 
-			e = s = new_str;
-			end = haystack + haystack_len;
-			for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
-				memcpy(e, p, r - p);
-				e += r - p;
-		
-				memcpy(e, str, str_len);
-				(*replace_count)++;
-				e += str_len;
-			}
+            e = s = new_str;
+            end = haystack + haystack_len;
+            for (p = haystack; (r = (char *)memnstr(p, needle, needle_len, end)); p = r + needle_len) {
+                memcpy(e, p, r - p);
+                e += r - p;
+        
+                memcpy(e, str, str_len);
+                (*replace_count)++;
+                e += str_len;
+            }
 
-			if (p < end) {
-				memcpy(e, p, end - p);
-				e += end - p;
-			}
+            if (p < end) {
+                memcpy(e, p, end - p);
+                e += end - p;
+            }
 
-			*e = '\0';
-	
-			return (const char *)new_str;
-		}
-	} else if (needle_len > haystack_len || memcmp(haystack, needle, haystack_len)) {
+            *e = '\0';
+    
+            return (const char *)new_str;
+        }
+    } else if (needle_len > haystack_len || memcmp(haystack, needle, haystack_len)) {
 
-		return haystack;
-	}else {
-		new_str = (char *)malloc(str_len*sizeof(char));
-		memcpy(new_str, str, str_len);
-		(*replace_count)++;
+        return haystack;
+    }else {
+        new_str = (char *)malloc(str_len*sizeof(char));
+        memcpy(new_str, str, str_len);
+        (*replace_count)++;
 
-		return (const char *)new_str;
-	}
+        return (const char *)new_str;
+    }
+}
+
+
+
+static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc)
+{
+   char* outbuf = 0;
+
+   if(src && src_len && from_enc && to_enc) {
+      size_t outlenleft = src_len;
+      size_t inlenleft = src_len;
+      lua_Integer outlen = src_len;
+      iconv_t ic;
+      char* out_ptr = 0;
+
+      if(strlen(to_enc) >= ICONV_CSNMAXLEN || strlen(from_enc) >= ICONV_CSNMAXLEN) {
+         return NULL;
+      }
+      ic = iconv_open(to_enc, from_enc);
+      if(ic != (iconv_t)-1) {
+         size_t st;
+         outbuf = (char*)malloc(outlen + 1);
+
+         if(outbuf) {
+            out_ptr = (char*)outbuf;
+            while(inlenleft) {
+               st = iconv(ic, (char**)&src, &inlenleft, &out_ptr, &outlenleft);
+               if(st == -1) {
+                  if(errno == E2BIG) {
+                     lua_Integer diff = out_ptr - outbuf;
+                     outlen += inlenleft;
+                     outlenleft += inlenleft;
+                     outbuf = (char*)realloc(outbuf, outlen + 1);
+                     if(!outbuf) {
+                        break;
+                     }
+                     out_ptr = outbuf + diff;
+                  }
+                  else {
+                     free(outbuf);
+                     outbuf = 0;
+                     break;
+                  }
+               }
+            }
+         }
+         iconv_close(ic);
+      }
+      outlen -= outlenleft;
+
+      if(new_len) {
+         *new_len = outbuf ? outlen : 0;
+      }
+      if(outbuf) {
+         outbuf[outlen] = 0;
+      }
+   }
+   return outbuf;
+}
+
+
+char * utf8_encode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding)
+{
+   return convert(s, len, newlen, encoding, "UTF-8");
+}
+
+
+char * utf8_decode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding)
+{
+   return convert(s, len, newlen, "UTF-8", encoding);
 }

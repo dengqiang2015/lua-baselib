@@ -28,6 +28,9 @@ strpos
 stripos
 str_replace
 range
+convert
+utf8_encode
+utf8_decode
 
 How to use:
 

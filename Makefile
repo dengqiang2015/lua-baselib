@@ -1,8 +1,8 @@
 # This Makefile is based on LuaSec's Makefile. Thanks to the LuaSec developers.
 # # Inform the location to intall the modules
-LUAPATH  ?= /usr/share/lua/5.1
-LUACPATH ?= /usr/local/lib/lua/5.1
-INCDIR   ?= -I /usr/include/lua5.1
+LUAPATH  ?= /usr/local/share/lua/5.1
+LUACPATH ?= /usr/local/lib/
+INCDIR   ?= -I /usr/local/include/
 LIBDIR   ?= -L /usr/lib
 CMOD = baselib.so
 OBJS = baselib.c

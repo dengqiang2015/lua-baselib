@@ -10,13 +10,21 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
-#include <errno.h> //For errno - the error number
-#include <netdb.h> //hostent
+#include <errno.h>
+#include <netdb.h>
+#include <iconv.h>
 #include "sha1.h"
+
+#ifndef ICONV_CSNMAXLEN
+#define ICONV_CSNMAXLEN 64
+#endif
+
+#define LOCK_EX 1
+#define FILE_APPEND 2   
 
 static unsigned char hexchars[] = "0123456789ABCDEF";
 
-static const lua_Integer  crc32tab[] = {
+static const lua_Integer crc32tab[] = {
  0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL,
  0x076dc419L, 0x706af48fL, 0xe963a535L, 0x9e6495a3L,
  0x0edb8832L, 0x79dcb8a4L, 0xe0d5e91eL, 0x97d2d988L,
@@ -92,8 +100,11 @@ lua_Integer get_local_ip(char * ifname, char * ip);
 char * rtrim(char * s, lua_Integer len);
 char * ltrim(char * s);
 char * trim(char * s, lua_Integer len);
-lua_Integer  crc32( const unsigned char *buf, lua_Integer  size);
+lua_Integer crc32( const unsigned char *buf, lua_Integer size);
 lua_Integer hostname2ip(const char * hostname , char* ip);
-void memnstr_pre(lua_Integer  td[], const char *needle, lua_Integer  needle_len, lua_Integer reverse);
-const char *memnstr(const char *haystack, const char *needle, lua_Integer  needle_len, const char *end);
-const char *str_replace(const char *haystack, lua_Integer  haystack_len, const char *needle, lua_Integer  needle_len, const char *str, lua_Integer  str_len, lua_Integer  *replace_count);
+void memnstr_pre(lua_Integer td[], const char *needle, lua_Integer needle_len, lua_Integer reverse);
+const char *memnstr(const char *haystack, const char *needle, lua_Integer needle_len, const char *end);
+const char *str_replace(const char *haystack, lua_Integer haystack_len, const char *needle, lua_Integer needle_len, const char *str, lua_Integer str_len, lua_Integer *replace_count);
+static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc);
+char * utf8_encode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);
+char * utf8_decode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);

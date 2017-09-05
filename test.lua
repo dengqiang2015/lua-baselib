@@ -161,5 +161,15 @@ for k,v in pairs(baselib.range('Z', 'W')) do
 end
 print('#######')
 
+str = '我是中国人'
+str = baselib.convert('UTF-8', 'GBK', str)
+print(str)
 
+str = baselib.convert('GBK', 'UTF-8', str)
+print(str)
+
+str = baselib.utf8_decode('GBK', str)
+print(str)
+str = baselib.utf8_encode('GBK', str)
+print(str)
 
