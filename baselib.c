@@ -1,6 +1,84 @@
 #include "baselib.h"
 #include "basefunc.c"
 
+int baselib_getext(lua_State *L)
+{
+    const char * src = luaL_checkstring(L, -1);
+	
+	lua_Integer src_len = strlen(src);
+	
+	lua_Integer pos = src_len;
+	
+    while(pos > 0)
+	{
+		if(*(src+pos) != '.')
+		{
+			pos--;
+			continue;
+		}
+		break;
+	}
+	
+	if(pos == 0)
+	{
+		lua_pushnil(L);
+		
+		return 1;   
+	}
+	
+	char *ext = (char *)malloc((src_len-pos+1)*sizeof(char));
+	
+	memset(ext, '\0', src_len-pos+1);
+	
+    memcpy(ext, src+pos, src_len-pos); 
+	
+    lua_pushstring(L, ext);
+	
+    return 1;   
+}
+
+int baselib_aes_decrypt(lua_State *L)
+{
+    const char * src = luaL_checkstring(L, -2);
+    const char * key = luaL_checkstring(L, -1);
+    lua_Integer key_len = strlen(key);
+    lua_Integer src_len = strlen(src);
+	lua_Integer des_len = 0;
+	
+	if(key_len == 0 || key_len > 32 || src_len == 0)
+	{
+		lua_pushnil(L);
+
+		return 1;
+	}
+	
+    const char *des = (const char *)aes_decrypt(src, src_len, key, key_len);
+
+    lua_pushstring(L, des);
+    return 1;   
+}
+
+int baselib_aes_encrypt(lua_State *L)
+{
+    const char * src = luaL_checkstring(L, -2);
+    const char * key = luaL_checkstring(L, -1);
+    lua_Integer key_len = strlen(key);
+    lua_Integer src_len = strlen(src);
+	
+	if(key_len == 0 || key_len > 32 || src_len == 0)
+	{
+		lua_pushnil(L);
+
+		return 1;
+	}
+	
+    const char *des = (const char *)aes_encrypt(src, src_len, key, key_len);
+
+    lua_pushstring(L, des);
+    return 1;   
+}
+
+
 int baselib_utf8_decode(lua_State *L)
 {
     const char * enc = luaL_checkstring(L, -2);
@@ -975,13 +1053,15 @@ static const struct luaL_Reg baselib[] = {
     {"convert", baselib_convert},
     {"utf8_encode", baselib_utf8_encode},
     {"utf8_decode", baselib_utf8_decode},
+	{"aes_encrypt", baselib_aes_encrypt},
+	{"aes_decrypt", baselib_aes_decrypt},
+	{"getext", baselib_getext},
     {NULL, NULL}
 
 };
 
 int luaopen_baselib(lua_State *L)
 {
-
     luaL_register(L, "baselib", baselib);
     return 1;
 }

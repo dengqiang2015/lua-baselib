@@ -173,3 +173,13 @@ print(str)
 str = baselib.utf8_encode('GBK', str)
 print(str)
 
+str = '我是中国人'
+secretkey = '1234567890'
+enc = baselib.aes_encrypt(str, secretkey)
+dec = baselib.aes_decrypt(enc, secretkey)
+print(enc)
+print(dec)
+
+file = 'local.2017.log'
+print(baselib.getext(file))
+

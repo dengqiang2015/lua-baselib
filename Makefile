@@ -3,7 +3,7 @@
 LUAPATH  ?= /usr/local/share/lua/5.1
 LUACPATH ?= /usr/local/lib/
 INCDIR   ?= -I /usr/local/include/
-LIBDIR   ?= -L /usr/lib
+LIBDIR   ?= -L /usr/lib -lssl
 CMOD = baselib.so
 OBJS = baselib.c
 LNX_CFLAGS  = -fPIC -shared -o
@@ -22,7 +22,7 @@ uninstall:
 clean:
 	rm -f $(OBJS) $(CMOD)
 .c.o:
-	$(cc) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $@ $<
+	$(cc) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $(LIBDIR) $@ $<
 
 $(CMOD): $(OBJS)
-	$(LD) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR)	
+	$(LD) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $(LIBDIR)	

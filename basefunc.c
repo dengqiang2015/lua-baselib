@@ -457,7 +457,6 @@ const char *str_replace(const char *haystack, lua_Integer haystack_len,const cha
 }
 
 
-
 static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc)
 {
    char* outbuf = 0;
@@ -525,3 +524,43 @@ char * utf8_decode(const char *s, lua_Integer len, lua_Integer *newlen, const ch
 {
    return convert(s, len, newlen, "UTF-8", encoding);
 }
+
+static char * aes_encrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len)
+{
+	AES_KEY aeskey;
+	lua_Integer len = (lua_Integer)(src_len/16)*16+17;
+	lua_Integer i;
+	char *des = (char *)malloc(len*sizeof(char));
+	
+	memset(des, '\0', src_len);
+	
+    AES_set_encrypt_key(key, 256, &aeskey);
+	
+	for(i = 0; i < src_len; i += 16 )
+	{
+		AES_encrypt(src+i, des+i, &aeskey);
+	}
+	
+	return des;
+}
+
+static char * aes_decrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len)
+{
+	AES_KEY aeskey;
+	
+	lua_Integer i;
+	
+	char *des = (char *)malloc((src_len+1)*sizeof(char));
+	
+	memset(des, '\0', src_len+1);
+
+	AES_set_decrypt_key(key ,256, &aeskey);
+	
+	for(i = 0; i < src_len; i += 16 )
+	{
+		AES_decrypt(src+i, des+i, &aeskey);
+	}
+	
+	return des;
+}
+

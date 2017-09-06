@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <iconv.h>
+#include <openssl/aes.h>
 #include "sha1.h"
 
 #ifndef ICONV_CSNMAXLEN
@@ -108,3 +109,5 @@ const char *str_replace(const char *haystack, lua_Integer haystack_len, const ch
 static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc);
 char * utf8_encode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);
 char * utf8_decode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);
+static char * aes_encrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len);
+static char * aes_decrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len);
