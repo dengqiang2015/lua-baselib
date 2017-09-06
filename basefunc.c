@@ -532,7 +532,7 @@ static char * aes_encrypt(const char *src, lua_Integer src_len, const char *key,
 	lua_Integer i;
 	char *des = (char *)malloc(len*sizeof(char));
 	
-	memset(des, '\0', src_len);
+	memset(des, '\0', len);
 	
     AES_set_encrypt_key(key, 256, &aeskey);
 	
