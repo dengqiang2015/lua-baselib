@@ -11,6 +11,28 @@
 #define OPENSSL_RAW_DATA 1
 #define OPENSSL_ZERO_PADDING 2
 
+
+#define OPENSSL_NO_DES
+#define OPENSSL_NO_IDEA
+#define OPENSSL_NO_RC4
+#define OPENSSL_NO_RC2
+#define OPENSSL_NO_CAMELLIA
+#define OPENSSL_NO_SEED
+#define OPENSSL_NO_MD4
+#define OPENSSL_NO_MD5
+#define OPENSSL_NO_SHA
+#define OPENSSL_NO_SHA0
+#define OPENSSL_NO_SHA1
+#define OPENSSL_NO_SHA256
+#define OPENSSL_NO_SHA512
+#define OPENSSL_NO_DSA
+#define OPENSSL_NO_ECDSA
+#define OPENSSL_NO_COMP
+#define OPENSSL_NO_RIPEMD
+#define OPENSSL_NO_WHIRLPOOL
+#define OPENSSL_NO_RIPEMD
+
+
 static unsigned char hexchars[] = "0123456789ABCDEF";
 
 static const lua_Integer crc32tab[] = {

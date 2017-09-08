@@ -1,3 +1,4 @@
+#include "basefunc.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,7 +21,6 @@
 #include <openssl/aes.h>
 
 #include "sha1.h"
-#include "basefunc.h"
 #include "md5.c"
  
  static lua_Integer htoi(char * s)  
@@ -633,9 +633,7 @@ int openssl_encrypt(const char *data, const char *method, const char *skey, char
 	int free_iv;
 	
 	SSL_library_init();
-	OpenSSL_add_all_ciphers();
-	OpenSSL_add_all_digests();
-	OpenSSL_add_all_algorithms();
+	//OpenSSL_add_all_algorithms();
 	cipher_type = EVP_get_cipherbyname(method);
 	
 	data_len = strlen(data);
@@ -693,7 +691,6 @@ int openssl_encrypt(const char *data, const char *method, const char *skey, char
 		}
 	} else {
 		free(outbuf);
-		printf("-2");
 		return -2;
 	}
 	if (key != (unsigned char*)skey) {
@@ -704,7 +701,6 @@ int openssl_encrypt(const char *data, const char *method, const char *skey, char
 	}
 	EVP_CIPHER_CTX_cleanup(&cipher_ctx);
 	EVP_cleanup();
-	printf("-3");
 	return -3;
 }
 
@@ -721,9 +717,6 @@ int openssl_decrypt(const char *data, const char *method, const char *skey, char
 	int free_iv;
 	
 	SSL_library_init();
-	OpenSSL_add_all_ciphers();
-	OpenSSL_add_all_digests();
-	OpenSSL_add_all_algorithms();
 	
 	data_len = strlen(data);
 	method_len = strlen(method);
@@ -732,7 +725,9 @@ int openssl_decrypt(const char *data, const char *method, const char *skey, char
 	if (!method_len) {
 		return -1;
 	}
-
+	
+	SSL_library_init();
+	//OpenSSL_add_all_algorithms();
 	cipher_type = EVP_get_cipherbyname(method);
 	if (!cipher_type) {
 		return -2;
