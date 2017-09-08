@@ -1,3 +1,17 @@
+/*
+  +----------------------------------------------------------------------+
+  | lua-baselib Version 1.0.2                                                        |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 2017 Dengqiang                                |
+  +----------------------------------------------------------------------+
+  | This source file is subject to version 5.1 of the LUA license.       |
+  | For more introduction, please visit the follow url                   |
+  | https://my.oschina.net/u/554660/blog/1305310                         |
+  +----------------------------------------------------------------------+
+  | Author:  Dengqiang<962404383@qq.com>                                 |
+  +----------------------------------------------------------------------+
+*/
+
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
