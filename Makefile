@@ -2,8 +2,8 @@
 # # Inform the location to intall the modules
 LUAPATH  ?= /usr/local/share/lua/5.1
 LUACPATH ?= /usr/local/lib/
-INCDIR   ?= -I /usr/local/include/
-LIBDIR   ?= -L /usr/lib -lssl
+INCDIR   ?= -I /usr/include/lua5.1
+LIBDIR   ?= -lssl
 CMOD = baselib.so
 OBJS = baselib.c
 LNX_CFLAGS  = -fPIC -shared -o
@@ -20,9 +20,9 @@ uninstall:
 	rm $(LUACPATH)/$(CMOD)
 
 clean:
-	rm -f $(OBJS) $(CMOD)
+	rm -f $(CMOD)
 .c.o:
-	$(cc) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $(LIBDIR) $@ $<
+	$(cc) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $(LIBDIR)$@ $<
 
 $(CMOD): $(OBJS)
 	$(LD) $(OBJS) $(LNX_CFLAGS) $(CMOD) $(INCDIR) $(LIBDIR)	

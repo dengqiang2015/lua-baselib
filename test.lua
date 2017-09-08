@@ -173,13 +173,21 @@ print(str)
 str = baselib.utf8_encode('GBK', str)
 print(str)
 
-str = '我是中国人'
-secretkey = '1234567890'
-enc = baselib.aes_encrypt(str, secretkey)
-dec = baselib.aes_decrypt(enc, secretkey)
+enc = baselib.aes_encrypt(str, '123456')
 print(enc)
+
+dec = baselib.aes_decrypt(enc, '123456')
 print(dec)
 
-file = 'local.2017.log'
-print(baselib.getext(file))
+print(baselib.getext('local.log'))
 
+method = 'AES-128-CBC'--just like php openssl extension
+secret_key = '123456'
+pading = 'OPENSSL_RAW_DATA'--just like php openssl extension
+iv = '1234567890abcdef'--16 bytes
+
+enc = baselib.openssl_encrypt(str, method, secret_key, pading, iv);
+print(enc)
+
+dec = baselib.openssl_decrypt(enc, method, secret_key, pading, iv);
+print(dec)

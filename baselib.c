@@ -1,5 +1,70 @@
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+#include <string.h>
 #include "baselib.h"
 #include "basefunc.c"
+
+
+int baselib_openssl_encrypt(lua_State *L)
+{
+	char *encstr;
+	const char * data = luaL_checkstring(L, -5);
+	const char * method = luaL_checkstring(L, -4);
+	const char * skey = luaL_checkstring(L, -3);
+	const char * options = luaL_checkstring(L, -2);
+    const char * iv = luaL_checkstring(L, -1);
+	int ivlen = strlen(iv);
+	char *ivcp = (char *)malloc(ivlen*sizeof(char));
+	int opt = OPENSSL_RAW_DATA;
+	memcpy(ivcp, iv, ivlen);
+	
+	if(strcasecmp(options, "OPENSSL_ZERO_PADDING") == 0)
+	{
+		opt = OPENSSL_ZERO_PADDING;
+	}
+	
+	int ret = openssl_encrypt(data, method, skey, &encstr, opt, ivcp, ivlen);
+	if(ret < 0 )
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	
+	lua_pushstring(L, encstr);
+    return 1;   
+}
+
+
+int baselib_openssl_decrypt(lua_State *L)
+{
+    char *decstr;
+	const char * data = luaL_checkstring(L, -5);
+	const char * method = luaL_checkstring(L, -4);
+	const char * skey = luaL_checkstring(L, -3);
+	const char * options = luaL_checkstring(L, -2);
+    const char * iv = luaL_checkstring(L, -1);
+	int ivlen = strlen(iv);
+	char *ivcp = (char *)malloc(ivlen*sizeof(char));
+	int opt = OPENSSL_RAW_DATA;
+	memcpy(ivcp, iv, ivlen);
+	
+	if(strcasecmp(options, "OPENSSL_ZERO_PADDING") == 0)
+	{
+		opt = OPENSSL_ZERO_PADDING;
+	}
+	
+	int ret = openssl_decrypt(data, method, skey, &decstr, opt, ivcp, ivlen);
+	
+	if(ret < 0 )
+	{
+		lua_pushnil(L);
+		return 1;
+	}
+	
+	lua_pushstring(L, decstr);
+    return 1;   
+}
 
 int baselib_getext(lua_State *L)
 {
@@ -52,7 +117,7 @@ int baselib_aes_decrypt(lua_State *L)
 		return 1;
 	}
 	
-    const char *des = (const char *)aes_decrypt(src, src_len, key, key_len);
+   char *des = (char *)aes_decrypt(src, src_len, key, key_len);
 
     lua_pushstring(L, des);
     return 1;   
@@ -72,7 +137,7 @@ int baselib_aes_encrypt(lua_State *L)
 		return 1;
 	}
 	
-    const char *des = (const char *)aes_encrypt(src, src_len, key, key_len);
+    char *des = (char *)aes_encrypt(src, src_len, key, key_len);
 
     lua_pushstring(L, des);
     return 1;   
@@ -86,7 +151,7 @@ int baselib_utf8_decode(lua_State *L)
     lua_Integer new_len = 0;
     lua_Integer src_len = strlen(src);
 
-    const char *newstr = (const char *)utf8_decode(src, src_len, &new_len, enc);
+    const char *newstr = (char *)utf8_decode(src, src_len, &new_len, enc);
 
     lua_pushstring(L, newstr);
     lua_pushnumber(L, new_len);
@@ -1056,6 +1121,8 @@ static const struct luaL_Reg baselib[] = {
 	{"aes_encrypt", baselib_aes_encrypt},
 	{"aes_decrypt", baselib_aes_decrypt},
 	{"getext", baselib_getext},
+	{"openssl_encrypt", baselib_openssl_encrypt},
+	{"openssl_decrypt", baselib_openssl_decrypt},
     {NULL, NULL}
 
 };

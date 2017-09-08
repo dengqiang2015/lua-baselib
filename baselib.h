@@ -1,7 +1,3 @@
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-#include <string.h>
 
 typedef struct tablekey
 {       

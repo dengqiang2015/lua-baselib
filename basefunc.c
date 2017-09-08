@@ -1,3 +1,25 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <malloc.h>
+#include <ctype.h>
+#include <math.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <netdb.h>
+#include <iconv.h>
+#include <openssl/evp.h>
+#include <openssl/crypto.h>
+#include <openssl/ssl.h>
+#include <openssl/pkcs12.h>
+#include <openssl/aes.h>
+
+#include "sha1.h"
 #include "basefunc.h"
 #include "md5.c"
  
@@ -457,6 +479,7 @@ const char *str_replace(const char *haystack, lua_Integer haystack_len,const cha
 }
 
 
+
 static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc)
 {
    char* outbuf = 0;
@@ -564,3 +587,210 @@ static char * aes_decrypt(const char *src, lua_Integer src_len, const char *key,
 	return des;
 }
 
+static int openssl_validate_iv(char **piv, int *piv_len, int iv_required_len)
+{
+	char *iv_new;
+
+	/* Best case scenario, user behaved */
+	if (*piv_len == iv_required_len) {
+		return 0;
+	}
+
+	iv_new = (char *)calloc(1, (iv_required_len + 1)*sizeof(char));
+
+	if (*piv_len <= 0) {
+		/* BC behavior */
+		*piv_len = iv_required_len;
+		*piv     = iv_new;
+		return 1;
+	}
+
+	if (*piv_len < iv_required_len) {
+		//printf("IV passed is only %d bytes long, cipher expects an IV of precisely %d bytes, padding with \\0", *piv_len, iv_required_len);
+		memcpy(iv_new, *piv, *piv_len);
+		*piv_len = iv_required_len;
+		*piv     = iv_new;
+		return 1;
+	}
+
+	//printf("IV passed is %d bytes long which is longer than the %d expected by selected cipher, truncating", *piv_len, iv_required_len);
+	memcpy(iv_new, *piv, iv_required_len);
+	*piv_len = iv_required_len;
+	*piv     = iv_new;
+	return 1;
+
+}
+
+
+int openssl_encrypt(const char *data, const char *method, const char *skey, char **encstr, long options, char *iv, int iv_len)
+{
+
+	int data_len, method_len, skey_len, max_iv_len;
+	const EVP_CIPHER *cipher_type;
+	EVP_CIPHER_CTX cipher_ctx;
+	int i=0, outlen, keylen;
+	unsigned char *outbuf, *key;
+	int free_iv;
+	
+	SSL_library_init();
+	OpenSSL_add_all_ciphers();
+	OpenSSL_add_all_digests();
+	OpenSSL_add_all_algorithms();
+	cipher_type = EVP_get_cipherbyname(method);
+	
+	data_len = strlen(data);
+	method_len = strlen(method);
+	skey_len = strlen(skey);
+	
+	if (!cipher_type) {
+
+		return -1;
+	}
+
+	keylen = EVP_CIPHER_key_length(cipher_type);
+	if (keylen > skey_len) {
+		key = (unsigned char *)malloc(keylen*sizeof(unsigned char));
+		memset(key, 0, keylen);
+		memcpy(key, skey, skey_len);
+	} else {
+		key = (unsigned char*)skey;
+	}
+
+	max_iv_len = EVP_CIPHER_iv_length(cipher_type);
+	if (iv_len <= 0 && max_iv_len > 0) {
+		//Using an empty Initialization Vector (iv) is potentially insecure and not recommended.
+	}
+	free_iv = openssl_validate_iv(&iv, &iv_len, max_iv_len);
+
+	outlen = data_len + EVP_CIPHER_block_size(cipher_type);
+	outbuf = (unsigned char *)malloc(outlen*sizeof(unsigned char));
+
+	EVP_EncryptInit(&cipher_ctx, cipher_type, NULL, NULL);
+	if (skey_len > keylen) {
+		EVP_CIPHER_CTX_set_key_length(&cipher_ctx, skey_len);
+	}
+	EVP_EncryptInit_ex(&cipher_ctx, NULL, NULL, key, (unsigned char *)iv);
+	if (options & OPENSSL_ZERO_PADDING) {
+		EVP_CIPHER_CTX_set_padding(&cipher_ctx, 0);
+	}
+	if (data_len > 0) {
+
+		EVP_EncryptUpdate(&cipher_ctx, outbuf, &i, (unsigned char *)data, data_len);
+
+	}
+	outlen = i;
+
+	if (EVP_EncryptFinal(&cipher_ctx, (unsigned char *)outbuf + i, &i)) {
+		outlen += i;
+		if (options & OPENSSL_RAW_DATA) {
+			outbuf[outlen] = '\0';
+			*encstr = (char *)outbuf;
+			return 0;
+		} else {
+			*encstr = (char*)base64_encode(outbuf);
+			free(outbuf);
+			return 0;
+		}
+	} else {
+		free(outbuf);
+		printf("-2");
+		return -2;
+	}
+	if (key != (unsigned char*)skey) {
+		free(key);
+	}
+	if (free_iv) {
+		free(iv);
+	}
+	EVP_CIPHER_CTX_cleanup(&cipher_ctx);
+	EVP_cleanup();
+	printf("-3");
+	return -3;
+}
+
+
+int openssl_decrypt(const char *data, const char *method, const char *skey, char **decstr, long options, char *iv, int iv_len)
+{
+
+	int data_len, method_len, skey_len;
+	const EVP_CIPHER *cipher_type;
+	EVP_CIPHER_CTX cipher_ctx;
+	int i, outlen, keylen;
+	unsigned char *outbuf, *key;
+	char *base64_str = NULL;
+	int free_iv;
+	
+	SSL_library_init();
+	OpenSSL_add_all_ciphers();
+	OpenSSL_add_all_digests();
+	OpenSSL_add_all_algorithms();
+	
+	data_len = strlen(data);
+	method_len = strlen(method);
+	skey_len = strlen(skey);
+	
+	if (!method_len) {
+		return -1;
+	}
+
+	cipher_type = EVP_get_cipherbyname(method);
+	if (!cipher_type) {
+		return -2;
+	}
+
+	if (!(options & OPENSSL_RAW_DATA)) {
+		base64_str = (char*)base64_decode((unsigned char*)data, 1);
+		if (!base64_str) {
+			return -3;
+		}
+		
+		data = base64_str;
+		data_len = strlen(data);
+	}
+
+	keylen = EVP_CIPHER_key_length(cipher_type);
+	if (keylen > skey_len) {
+		key = (char *)malloc(keylen*sizeof(char));
+		memset(key, 0, keylen);
+		memcpy(key, skey, skey_len);
+	} else {
+		key = (unsigned char*)skey;
+	}
+
+	free_iv = openssl_validate_iv(&iv, &iv_len, EVP_CIPHER_iv_length(cipher_type));
+
+	outlen = data_len + EVP_CIPHER_block_size(cipher_type);
+	outbuf = (char *)malloc(outlen*sizeof(char));
+
+	EVP_DecryptInit(&cipher_ctx, cipher_type, NULL, NULL);
+	if (skey_len > keylen) {
+		EVP_CIPHER_CTX_set_key_length(&cipher_ctx, skey_len);
+	}
+	EVP_DecryptInit_ex(&cipher_ctx, NULL, NULL, key, (unsigned char *)iv);
+	if (options & OPENSSL_ZERO_PADDING) {
+		EVP_CIPHER_CTX_set_padding(&cipher_ctx, 0);
+	}
+	EVP_DecryptUpdate(&cipher_ctx, outbuf, &i, (unsigned char *)data, data_len);
+	outlen = i;
+	if (EVP_DecryptFinal(&cipher_ctx, (unsigned char *)outbuf + i, &i)) {
+		outlen += i;
+		outbuf[outlen] = '\0';
+		*decstr = (char *)outbuf;
+		return 0;
+	} else {
+		free(outbuf);
+		return -4;
+	}
+	if (key != (unsigned char*)skey) {
+		free(key);
+	}
+	if (free_iv) {
+		free(iv);
+	}
+	if (base64_str) {
+		free(base64_str);
+	}
+ 	EVP_CIPHER_CTX_cleanup(&cipher_ctx);
+	EVP_cleanup();
+	return -5;
+}

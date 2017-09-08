@@ -1,27 +1,15 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <malloc.h>
-#include <ctype.h>
-#include <math.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include <netdb.h>
-#include <iconv.h>
-#include <openssl/aes.h>
-#include "sha1.h"
+#define SUCCESS 0
+#define FAILURE -1
 
 #ifndef ICONV_CSNMAXLEN
 #define ICONV_CSNMAXLEN 64
 #endif
 
-#define LOCK_EX 1
-#define FILE_APPEND 2   
+#define MCRYPT_ENCRYPT 0
+#define MCRYPT_DECRYPT 1
+
+#define OPENSSL_RAW_DATA 1
+#define OPENSSL_ZERO_PADDING 2
 
 static unsigned char hexchars[] = "0123456789ABCDEF";
 
@@ -109,5 +97,8 @@ const char *str_replace(const char *haystack, lua_Integer haystack_len, const ch
 static char * convert(const char* src, lua_Integer src_len, lua_Integer *new_len, const char* from_enc, const char* to_enc);
 char * utf8_encode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);
 char * utf8_decode(const char *s, lua_Integer len, lua_Integer *newlen, const char* encoding);
+static int openssl_validate_iv(char **piv, int *piv_len, int iv_required_len);
 static char * aes_encrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len);
 static char * aes_decrypt(const char *src, lua_Integer src_len, const char *key, lua_Integer key_len);
+int openssl_encrypt(const char *data, const char *method, const char *skey, char **encstr, long options, char *iv, int iv_len);
+int openssl_decrypt(const char *data, const char *method, const char *skey, char **decstr, long options, char *iv, int iv_len);

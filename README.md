@@ -19,8 +19,7 @@ INCDIR   ?= -I (Lua header file path)
 LIBDIR   ?= -L (Lua library path) -lssl
 <br>
 <br>
-
-**Base functions list:**
+<p><strong>Base functions list:</strong>
 <br>
 sha1
 <br>
@@ -82,16 +81,26 @@ utf8_encode
 <br>
 utf8_decode
 <br>
+aes_encrypt
 <br>
+aes_decrypt
+<br>
+getext
+<br>
+openssl_decrypt
+<br>
+openssl_encrypt
+<br>
+<br>
+</p>
 
-**How to use:**
+<p><strong>How to use:</strong>
 <br>
 require 'baselib'
 <br>
 print(baselib.sha1('hello world'))
 <br>
+<br></p>
+<p><strong>More examples:</strong>
 <br>
-
-**More examples:**
-<br>
-View the test.lua file
+View the test.lua file</p>
